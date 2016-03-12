@@ -1049,7 +1049,7 @@ if msg.to.type == 'chat' then
         local picturehash = 'picture:changed:'..msg.to.id..':'..msg.from.id
         local picprotectionredis = redis:get(picturehash)
         if picprotectionredis then
-          if tonumber(picprotectionredis) == 4 and not is_owner(msg) then
+          if tonumber(picprotectionredis) == 3 and not is_owner(msg) then
             kick_user(msg.from.id, msg.to.id)
           end
           if tonumber(picprotectionredis) ==  8 and not is_owner(msg) then
@@ -1077,7 +1077,7 @@ if msg.to.type == 'chat' then
         local picturehash = 'picture:changed:'..msg.to.id..':'..msg.from.id
         local picprotectionredis = redis:get(picturehash)
         if picprotectionredis then
-          if tonumber(picprotectionredis) == 4 and not is_owner(msg) then
+          if tonumber(picprotectionredis) == 3 and not is_owner(msg) then
             kick_user(msg.from.id, msg.to.id)
           end
           if tonumber(picprotectionredis) ==  8 and not is_owner(msg) then
@@ -1107,7 +1107,7 @@ if msg.to.type == 'chat' then
           local namehash = 'name:changed:'..msg.to.id..':'..msg.from.id
           local nameprotectionredis = redis:get(namehash)
           if nameprotectionredis then
-            if tonumber(nameprotectionredis) == 4 and not is_owner(msg) then
+            if tonumber(nameprotectionredis) ==  and not is_owner(msg) then
               kick_user(msg.from.id, msg.to.id)
             end
             if tonumber(nameprotectionredis) ==  8 and not is_owner(msg) then
