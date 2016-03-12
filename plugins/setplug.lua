@@ -1,6 +1,6 @@
 local function run(msg, matches)
  local text = matches[2]
- if matches[1] == "plug" then
+ if matches[1]lower:()== "superplug" then
   return text
  else
   local file = io.open("./plugins/"..matches[1], "w")
@@ -18,8 +18,8 @@ return {
   "plug> [ext] [text] : save text to file",
  },
  patterns = {
-  "^[!/](plug) (.*)$",
-  "^[Pp]lug> ([^%s]+) (.*)$",
+  "^[!/](superplug) (.*)$",
+  "^[Ss]uperplug> ([^%s]+) (.*)$",
  },
  run = run,
 privileged = true,
