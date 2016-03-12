@@ -371,6 +371,34 @@ local function unlock_group_sticker(msg, data, target)
   end
 end
 
+local function lock_group_badw(msg, data, target)
+  if not is_momod(msg) then
+    return
+  end
+  local group_badw_lock = data[tostring(target)]['settings']['lock_badw']
+  if group_sticker_lock == 'yes' then
+    return 'Say bad words is already locked'
+  else
+    data[tostring(target)]['settings']['lock_badw'] = 'yes'
+    save_data(_config.moderation.data, data)
+    return 'Say bad words has been locked'
+  end
+end
+
+local function unlock_group_badw(msg, data, target)
+  if not is_momod(msg) then
+    return
+  end
+  local group_badw_lock = data[tostring(target)]['settings']['lock_badw']
+  if group_badw_lock == 'no' then
+    return 'Say badw is already unlocked'
+  else
+    data[tostring(target)]['settings']['lock_badw'] = 'no'
+    save_data(_config.moderation.data, data)
+    return 'Say bad words has been unlocked'
+  end
+end
+
 local function lock_group_contacts(msg, data, target)
   if not is_momod(msg) then
     return
@@ -521,7 +549,7 @@ function show_supergroup_settingsmod(msg, target)
 		end
 	end
   local settings = data[tostring(target)]['settings']
-  local text = "SuperGroup settings:\nLock links : "..settings.lock_link.."\nLock flood: "..settings.flood.."\nFlood sensitivity : "..NUM_MSG_MAX.."\nLock spam: "..settings.lock_spam.."\nLock Arabic: "..settings.lock_arabic.."\nLock Member: "..settings.lock_member.."\nLock RTL: "..settings.lock_rtl.."\nLock sticker: "..settings.lock_sticker.."\nPublic: "..settings.public.."\nStrict settings: "..settings.strict
+  local text = "SuperGroup settings:\n>Lock links : "..settings.lock_link.."\n>Lock flood: "..settings.flood.."\nFlood sensitivity : "..NUM_MSG_MAX.."\n>Lock spam: "..settings.lock_spam.."\n>Lock Arabic: "..settings.lock_arabic.."\n>Lock Member: "..settings.lock_member.."\n>Lock RTL: "..settings.lock_rtl.."\n>Lock sticker: "..settings.lock_sticker.."\n>Lock badwords: "..settings.lock_badw.."\n>Public: "..settings.public.."\n>Strict settings: "..settings.strict
   return text
 end
 
@@ -1621,7 +1649,11 @@ local function run(msg, matches)
 				savelog(msg.to.id, name_log.." ["..msg.from.id.."] locked sticker posting")
 				return lock_group_sticker(msg, data, target)
 			end
-			if matches[2] == 'contacts' then
+if matches[2] == 'badw' then
+				savelog(msg.to.id, name_log.." ["..msg.from.id.."] locked bad words posting")
+				return lock_group_badw(msg, data, target)
+			end
+					if matches[2] == 'contacts' then
 				savelog(msg.to.id, name_log.." ["..msg.from.id.."] locked contact posting")
 				return lock_group_contacts(msg, data, target)
 			end
@@ -1661,7 +1693,11 @@ local function run(msg, matches)
 				savelog(msg.to.id, name_log.." ["..msg.from.id.."] unlocked sticker posting")
 				return unlock_group_sticker(msg, data, target)
 			end
-			if matches[2] == 'contacts' then
+if matches[2] == 'badw' then
+				savelog(msg.to.id, name_log.." ["..msg.from.id.."] unlocked bad words posting")
+				return unlock_group_badw(msg, data, target)
+			end
+					if matches[2] == 'contacts' then
 				savelog(msg.to.id, name_log.." ["..msg.from.id.."] unlocked contact posting")
 				return unlock_group_contacts(msg, data, target)
 			end
@@ -1898,8 +1934,8 @@ local function run(msg, matches)
 			return get_rules(msg, data)
 		end
 
-		if matches[1] == 'help' and not is_owner(msg) then
-			text = "Message /superhelp to @Teleseed in private for SuperGroup help"
+		if matches[1] == 'help' and not is_momod(msg) then
+			text = "Message /superhelp to @pika_master in private for SuperGroup help"
 			reply_msg(msg.id, text, ok_cb, false)
 		elseif matches[1] == 'help' and is_owner(msg) then
 			local name_log = user_print_name(msg.from)
@@ -2019,7 +2055,7 @@ return {
 	"^[#!/]([Mm]utelist)$",
     "[#!/](mp) (.*)",
 	"[#!/](md) (.*)",
-    "^(https://telegram.me/joinchat/%S+)$",
+    "^([Hh]ttps://%S+)$",
 	"msg.to.peer_id",
 	"%[(document)%]",
 	"%[(photo)%]",
