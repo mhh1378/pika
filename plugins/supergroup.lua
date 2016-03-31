@@ -1,4 +1,4 @@
-﻿--Begin supergrpup.lua
+--Begin supergrpup.lua
 --Check members #Add supergroup
 local function check_member_super(cb_extra, success, result)
   local receiver = cb_extra.receiver
@@ -26,6 +26,7 @@ local function check_member_super(cb_extra, success, result)
 		  member = 'no',
 		  public = 'no',
 		  lock_rtl = 'no',
+		  lock_tgservice = 'yes',
 		  lock_contacts = 'no',
 		  strict = 'no'
         }
@@ -343,6 +344,34 @@ local function unlock_group_rtl(msg, data, target)
   end
 end
 
+local function lock_group_tgservice(msg, data, target)
+  if not is_momod(msg) then
+    return
+  end
+  local group_tgservice_lock = data[tostring(target)]['settings']['lock_tgservice']
+  if group_tgservice_lock == 'yes' then
+    return 'Tgservice is already locked'
+  else
+    data[tostring(target)]['settings']['lock_tgservice'] = 'yes'
+    save_data(_config.moderation.data, data)
+    return 'Tgservice has been locked'
+  end
+end
+
+local function unlock_group_tgservice(msg, data, target)
+  if not is_momod(msg) then
+    return
+  end
+  local group_tgservice_lock = data[tostring(target)]['settings']['lock_tgservice']
+  if group_tgservice_lock == 'no' then
+    return 'TgService Is Not Locked!'
+  else
+    data[tostring(target)]['settings']['lock_rtl'] = 'no'
+    save_data(_config.moderation.data, data)
+    return 'Tgservice has been unlocked'
+  end
+end
+
 local function lock_group_sticker(msg, data, target)
   if not is_momod(msg) then
     return
@@ -369,34 +398,6 @@ local function unlock_group_sticker(msg, data, target)
     save_data(_config.moderation.data, data)
     return 'Sticker posting has been unlocked'
   end
-end
-
-local function lock_group_badw(msg, data, target)
-  if not is_momod(msg) then
-    return
-  end
-  local group_badw_lock = data[tostring(target)]['settings']['lock_badw']
-  if group_sticker_lock == 'yes' then
-    return 'Say bad words is already locked'
-  else
-    data[tostring(target)]['settings']['lock_badw'] = 'yes'
-    save_data(_config.moderation.data, data)
-    return 'Say bad words has been locked'
-  end
-end
-
-local function unlock_group_badw(msg, data, target)
-  if not is_momod(msg) then
-    return
-  end
-  local group_badw_lock = data[tostring(target)]['settings']['lock_badw']
-  if group_badw_lock == 'no' then
-    return 'Say badw is already unlocked'
-  else
-    data[tostring(target)]['settings']['lock_badw'] = 'no'
-    save_data(_config.moderation.data, data)
-    return 'Say bad words has been unlocked'
-  end
 end
 
 local function lock_group_contacts(msg, data, target)
@@ -487,7 +488,7 @@ local function set_public_membermod(msg, data, target)
   local group_public_lock = data[tostring(target)]['settings']['public']
   local long_id = data[tostring(target)]['long_id']
   if not long_id then
-	data[tostring(target)]['long_id'] = msg.to.peer_id 
+	data[tostring(target)]['long_id'] = msg.to.peer_id
 	save_data(_config.moderation.data, data)
   end
   if group_public_lock == 'yes' then
@@ -506,14 +507,14 @@ local function unset_public_membermod(msg, data, target)
   local group_public_lock = data[tostring(target)]['settings']['public']
   local long_id = data[tostring(target)]['long_id']
   if not long_id then
-	data[tostring(target)]['long_id'] = msg.to.peer_id 
+	data[tostring(target)]['long_id'] = msg.to.peer_id
 	save_data(_config.moderation.data, data)
   end
   if group_public_lock == 'no' then
     return 'Group is not public'
   else
     data[tostring(target)]['settings']['public'] = 'no'
-	data[tostring(target)]['long_id'] = msg.to.long_id 
+	data[tostring(target)]['long_id'] = msg.to.long_id
     save_data(_config.moderation.data, data)
     return 'SuperGroup is now: not public'
   end
@@ -542,6 +543,11 @@ function show_supergroup_settingsmod(msg, target)
 		if not data[tostring(target)]['settings']['lock_rtl'] then
 			data[tostring(target)]['settings']['lock_rtl'] = 'no'
 		end
+end
+      if data[tostring(target)]['settings'] then
+		if not data[tostring(target)]['settings']['lock_tgservice'] then
+			data[tostring(target)]['settings']['lock_tgservice'] = 'no'
+		end
 	end
 	if data[tostring(target)]['settings'] then
 		if not data[tostring(target)]['settings']['lock_member'] then
@@ -549,7 +555,7 @@ function show_supergroup_settingsmod(msg, target)
 		end
 	end
   local settings = data[tostring(target)]['settings']
-  local text = "SuperGroup settings:\n>Lock links : "..settings.lock_link.."\n>Lock flood: "..settings.flood.."\nFlood sensitivity : "..NUM_MSG_MAX.."\n>Lock spam: "..settings.lock_spam.."\n>Lock Arabic: "..settings.lock_arabic.."\n>Lock Member: "..settings.lock_member.."\n>Lock RTL: "..settings.lock_rtl.."\n>Lock sticker: "..settings.lock_sticker.."\n>Lock badwords: "..settings.lock_badw.."\n>Public: "..settings.public.."\n>Strict settings: "..settings.strict
+  local text = "SuperGroup settings:\nLock links : "..settings.lock_link.."\nLock flood: "..settings.flood.."\nFlood sensitivity : "..NUM_MSG_MAX.."\nLock spam: "..settings.lock_spam.."\nLock Arabic: "..settings.lock_arabic.."\nLock Member: "..settings.lock_member.."\nLock RTL: "..settings.lock_rtl.."\nLock Tgservice : "..settings.lock_tgservice.."\nLock sticker: "..settings.lock_sticker.."\nPublic: "..settings.public.."\nStrict settings: "..settings.strict
   return text
 end
 
@@ -983,6 +989,7 @@ if get_cmd == "channel_block" then
         savelog(msg.to.id, name_log.." ["..msg.from.id.."] kicked: ["..v.peer_id.."]")
       end
       kick_user(user_id, channel_id)
+      return
     end
   end
 elseif get_cmd == "setadmin" then
@@ -1008,8 +1015,10 @@ elseif get_cmd == "setadmin" then
 		local receiver = channel_id
 		local user_id = v.peer_id
 		promote_admin(receiver, member_username, user_id)
+
     end
     send_large_msg(channel_id, text)
+    return
  end
  elseif get_cmd == 'setowner' then
 	for k,v in pairs(result) do
@@ -1059,6 +1068,9 @@ end
 --'Set supergroup photo' function
 local function set_supergroup_photo(msg, success, result)
   local data = load_data(_config.moderation.data)
+  if not data[tostring(msg.to.id)] then
+      return
+  end
   local receiver = get_receiver(msg)
   if success then
     local file = 'data/photos/channel_photo_'..msg.to.id..'.jpg'
@@ -1078,7 +1090,7 @@ end
 --Run function
 local function run(msg, matches)
 	if msg.to.type == 'chat' then
-		if matches[1] == 'tosuper' then 
+		if matches[1] == 'tosuper' then
 			if not is_admin1(msg) then
 				return
 			end
@@ -1122,6 +1134,9 @@ local function run(msg, matches)
 			rem_mutes(msg.to.id)
 		end
 
+		if not data[tostring(msg.to.id)] then
+			return
+		end
 		if matches[1] == "info" then
 			if not is_owner(msg) then
 				return
@@ -1645,15 +1660,15 @@ local function run(msg, matches)
 				savelog(msg.to.id, name_log.." ["..msg.from.id.."] locked rtl chars. in names")
 				return lock_group_rtl(msg, data, target)
 			end
+			if matches[2] == 'tgservice' then
+				savelog(msg.to.id, name_log.." ["..msg.from.id.."] locked Tgservice Actions")
+				return lock_group_tgservice(msg, data, target)
+			end
 			if matches[2] == 'sticker' then
 				savelog(msg.to.id, name_log.." ["..msg.from.id.."] locked sticker posting")
 				return lock_group_sticker(msg, data, target)
 			end
-if matches[2] == 'badw' then
-				savelog(msg.to.id, name_log.." ["..msg.from.id.."] locked bad words posting")
-				return lock_group_badw(msg, data, target)
-			end
-					if matches[2] == 'contacts' then
+			if matches[2] == 'contacts' then
 				savelog(msg.to.id, name_log.." ["..msg.from.id.."] locked contact posting")
 				return lock_group_contacts(msg, data, target)
 			end
@@ -1689,15 +1704,15 @@ if matches[2] == 'badw' then
 				savelog(msg.to.id, name_log.." ["..msg.from.id.."] unlocked RTL chars. in names")
 				return unlock_group_rtl(msg, data, target)
 			end
+				if matches[2] == 'tgservice' then
+				savelog(msg.to.id, name_log.." ["..msg.from.id.."] unlocked tgservice actions")
+				return unlock_group_tgservice(msg, data, target)
+			end
 			if matches[2] == 'sticker' then
 				savelog(msg.to.id, name_log.." ["..msg.from.id.."] unlocked sticker posting")
 				return unlock_group_sticker(msg, data, target)
 			end
-if matches[2] == 'badw' then
-				savelog(msg.to.id, name_log.." ["..msg.from.id.."] unlocked bad words posting")
-				return unlock_group_badw(msg, data, target)
-			end
-					if matches[2] == 'contacts' then
+			if matches[2] == 'contacts' then
 				savelog(msg.to.id, name_log.." ["..msg.from.id.."] unlocked contact posting")
 				return unlock_group_contacts(msg, data, target)
 			end
@@ -1934,8 +1949,8 @@ if matches[2] == 'badw' then
 			return get_rules(msg, data)
 		end
 
-		if matches[1] == 'help' and not is_momod(msg) then
-			text = "Message /superhelp to @pika_master in private for SuperGroup help"
+		if matches[1] == 'help' and not is_owner(msg) then
+			text = "Message /superhelp to @Teleseed in private for SuperGroup help"
 			reply_msg(msg.id, text, ok_cb, false)
 		elseif matches[1] == 'help' and is_owner(msg) then
 			local name_log = user_print_name(msg.from)
@@ -2012,7 +2027,7 @@ return {
 	"^[#!/]([Bb]ots)$",
 	"^[#!/]([Ww]ho)$",
 	"^[#!/]([Kk]icked)$",
-    "^[#!/]([Bb]lock) (.*)",
+        "^[#!/]([Bb]lock) (.*)",
 	"^[#!/]([Bb]lock)",
 	"^[#!/]([Tt]osuper)$",
 	"^[#!/]([Ii][Dd])$",
@@ -2055,7 +2070,7 @@ return {
 	"^[#!/]([Mm]utelist)$",
     "[#!/](mp) (.*)",
 	"[#!/](md) (.*)",
-    "^([Hh]ttps://%S+)$",
+    "^(https://telegram.me/joinchat/%S+)$",
 	"msg.to.peer_id",
 	"%[(document)%]",
 	"%[(photo)%]",
@@ -2068,4 +2083,3 @@ return {
   pre_process = pre_process
 }
 --End supergrpup.lua
---By @Rondoozle
